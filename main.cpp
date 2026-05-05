@@ -17,6 +17,31 @@ using namespace std;
 ListKH listKH;
 ListHD listHD;
 ListSP listSP;
+void insertSampleSanPhamData(const string &filename) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "Khong the mo file de ghi du lieu mau: " << filename << endl;
+        return;
+    }
+    SanPham ds[] = {
+        {"SP01", "Gao ST25", "Thuc pham", 32000, 80, "Vinaseed"},
+        {"SP02", "Sua tuoi", "Do uong", 12000, 150, "Vinamilk"},
+        {"SP03", "Nuoc rua chen", "Gia dung", 28000, 45, "Sunlight"},
+        {"SP04", "Banh quy", "Thuc pham", 45000, 60, "Kinh Do"},
+        {"SP05", "Dau an", "Thuc pham", 52000, 35, "Tuong An"}
+    };
+    int n = sizeof(ds) / sizeof(ds[0]);
+    for (int i = 0; i < n; ++i) {
+        file << ds[i].maSP << '\t'
+             << ds[i].tenSP << '\t'
+             << ds[i].loaiSP << '\t'
+             << ds[i].donGia << '\t'
+             << ds[i].soLuong << '\t'
+             << ds[i].nhasanXuat << '\n';
+    }
+    file.close();
+    cout << "Da ghi du lieu mau vao " << filename << endl;
+}
 
 void loadSanPhamTuFile(ListSP &list, const string &filename){
     ifstream file(filename);
@@ -24,13 +49,20 @@ void loadSanPhamTuFile(ListSP &list, const string &filename){
         cout << "Khong the mo file: " << filename << endl;
         return;
     }
-    // load binary file
-    while(file.peek() != EOF){
+    while (!file.eof()) {
         SanPham sp;
-        file.read((char*)&sp, sizeof(sp));
-        // tạo node mới và thêm vào danh sách
+        string donGiaStr, soLuongStr;
+        if (!getline(file, sp.maSP, '\t')) break;
+        getline(file, sp.tenSP, '\t');
+        getline(file, sp.loaiSP, '\t');
+        getline(file, donGiaStr, '\t');
+        getline(file, soLuongStr, '\t');
+        getline(file, sp.nhasanXuat);
+        if (sp.maSP.empty()) continue;
+        sp.donGia = stoi(donGiaStr);
+        sp.soLuong = stoi(soLuongStr);
+
         NodeSP *newNode = new NodeSP{sp, nullptr};
-        // nếu là node đầu tiên thì gán head, ngược lại thêm vào cuối danh sách
         if(list.head == nullptr){
             list.head = newNode;
         } else {
@@ -42,24 +74,6 @@ void loadSanPhamTuFile(ListSP &list, const string &filename){
         }
     }
     file.close();
-}
-
-
-void menu(){
-    // dung tieng vet ko dau tranh bug
-    cout << "1. Nhap danh sach san pham" << endl;
-    cout << "2. In danh sach san pham" << endl;
-    cout << "3. Sua san pham theo ma" << endl;
-    cout << "4. Xoa san pham theo ma" << endl;
-    cout << "5. Tim kiem san pham" << endl;
-    cout << "6. Sap xep san pham" << endl;
-    cout << "7. Them don hang" << endl;
-    cout << "8. Tim san pham co luong ban lon nhat/nho nhat" << endl;
-    cout << "9. Tinh tong ton kho" << endl;
-    cout << "10. Tim kiem theo loai" << endl;
-    cout << "11. Thong ke theo dieu kien" << endl;
-    cout << "12. Thoat" << endl;
-    cout << "Chon chuc nang: ";
 }
 
 void nhapDanhSachSanPham(ListSP &list){
@@ -113,6 +127,47 @@ void nhapDanhSachSanPham(ListSP &list){
     return;
 }
 
+void inDanhSachSanPham(const ListSP &list){
+    // code in danh sách sản phẩm
+    cout << left << setw(10) << "Ma SP" 
+         << left << setw(20) << "Ten SP" 
+         << left << setw(15) << "Loai SP" 
+         << left << setw(10) << "Don Gia" 
+         << left << setw(10) << "So Luong" 
+         << left << setw(20) << "Nha San Xuat" 
+         << endl;
+    cout << string(85, '-') << endl; // in đường kẻ ngang
+    NodeSP *temp = list.head;
+    while(temp != nullptr){
+        cout << left << setw(10) << temp->data.maSP 
+             << left << setw(20) << temp->data.tenSP 
+             << left << setw(15) << temp->data.loaiSP 
+             << left << setw(10) << temp->data.donGia 
+             << left << setw(10) << temp->data.soLuong 
+             << left << setw(20) << temp->data.nhasanXuat 
+             << endl;
+        temp = temp->next;
+    }
+}
+
+void menu(){
+    // dung tieng vet ko dau tranh bug
+    cout << "1. Nhap danh sach san pham" << endl;
+    cout << "2. In danh sach san pham" << endl;
+    cout << "3. Sua san pham theo ma" << endl;
+    cout << "4. Xoa san pham theo ma" << endl;
+    cout << "5. Tim kiem san pham" << endl;
+    cout << "6. Sap xep san pham" << endl;
+    cout << "7. Them don hang" << endl;
+    cout << "8. Tim san pham co luong ban lon nhat/nho nhat" << endl;
+    cout << "9. TTinh tong ton kho" << endl;
+    cout << "10. TTim kiem theo loai" << endl;
+    cout << "11. Thong ke theo dieu kien" << endl;
+    cout << "12. Thoat" << endl;
+    cout << "13. Ghi du lieu mau vao file" << endl;
+    cout << "Chon chuc nang: ";
+}
+
 
 int main(int argc, char* argv[]){
     // load dữ liệu sản phẩm từ file khi chương trình bắt đầu
@@ -130,11 +185,10 @@ int main(int argc, char* argv[]){
         cin.ignore(1000, '\n'); // xóa phần còn lại của dòng
         switch(choice){
             case 1:
-                cout << "Nhap danh sach san pham." << endl;
                 nhapDanhSachSanPham(listSP);
                 break;
             case 2:
-                // code in danh sách sản phẩm
+                inDanhSachSanPham(listSP);
                 break;
             case 3:
                 // code sửa sản phẩm theo mã
@@ -166,8 +220,11 @@ int main(int argc, char* argv[]){
             case 12:
                 cout << "Thoat chuong trinh." << endl;
                 return 0; // thoat chuong trinh
+            case 13:
+                insertSampleSanPhamData("./data/SanPham.txt");
+                break;
             default:
-                cout << "LLua chon khong hop le. Vui long chon lai." << endl;
+                cout << "Lua chon khong hop le. Vui long chon lai." << endl;
         }
     }
     
