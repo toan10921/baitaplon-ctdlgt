@@ -1,22 +1,237 @@
+#include <cctype>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <string>
-// đọc ghi file
-#include <fstream>
-// căn bảng in dữ liệu
-#include <iomanip>
+#include <utility>
 
-// setup namespace
 using namespace std;
 
-// include các file header cấu trúc dữ liệu
 #include "./models/HoaDon.h"
 #include "./models/KhachHang.h"
 #include "./models/SanPham.h"
 
-// khởi tạo các danh sách toàn cục
-ListKH listKH;
-ListHD listHD;
-ListSP listSP;
+ListKH listKH{nullptr};
+ListHD listHD{nullptr};
+ListSP listSP{nullptr};
+
+const string SAN_PHAM_FILE = "./data/SanPham.txt";
+const string KHACH_HANG_FILE = "./data/KhachHang.txt";
+const string HOA_DON_FILE = "./data/HoaDon.txt";
+
+void themNodeSanPham(ListSP &list, const SanPham &sp)
+{
+    NodeSP *newNode = new NodeSP{sp, nullptr};
+    if (list.head == nullptr)
+    {
+        list.head = newNode;
+        return;
+    }
+
+    NodeSP *temp = list.head;
+    while (temp->next != nullptr)
+    {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+}
+
+void themNodeKhachHang(ListKH &list, const KhachHang &kh)
+{
+    NodeKH *newNode = new NodeKH{kh, nullptr};
+    if (list.head == nullptr)
+    {
+        list.head = newNode;
+        return;
+    }
+
+    NodeKH *temp = list.head;
+    while (temp->next != nullptr)
+    {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+}
+
+void themNodeHoaDon(ListHD &list, const HoaDon &hd)
+{
+    NodeHD *newNode = new NodeHD{hd, nullptr};
+    if (list.head == nullptr)
+    {
+        list.head = newNode;
+        return;
+    }
+
+    NodeHD *temp = list.head;
+    while (temp->next != nullptr)
+    {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+}
+
+void xoaDanhSachSanPham(ListSP &list)
+{
+    while (list.head != nullptr)
+    {
+        NodeSP *nodeCanXoa = list.head;
+        list.head = list.head->next;
+        delete nodeCanXoa;
+    }
+}
+
+void xoaDanhSachKhachHang(ListKH &list)
+{
+    while (list.head != nullptr)
+    {
+        NodeKH *nodeCanXoa = list.head;
+        list.head = list.head->next;
+        delete nodeCanXoa;
+    }
+}
+
+void xoaDanhSachHoaDon(ListHD &list)
+{
+    while (list.head != nullptr)
+    {
+        NodeHD *nodeCanXoa = list.head;
+        list.head = list.head->next;
+        delete nodeCanXoa;
+    }
+}
+
+NodeSP *timSanPhamTheoMa(ListSP &list, const string &maSP)
+{
+    NodeSP *temp = list.head;
+    while (temp != nullptr)
+    {
+        if (temp->data.maSP == maSP)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return nullptr;
+}
+
+NodeKH *timKhachHangTheoMa(ListKH &list, const string &maKH)
+{
+    NodeKH *temp = list.head;
+    while (temp != nullptr)
+    {
+        if (temp->data.maKH == maKH)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    return nullptr;
+}
+
+bool tonTaiMaHoaDon(const ListHD &list, const string &maHD)
+{
+    NodeHD *temp = list.head;
+    while (temp != nullptr)
+    {
+        if (temp->data.maHD == maHD)
+        {
+            return true;
+        }
+        temp = temp->next;
+    }
+    return false;
+}
+
+string chuyenVeChuThuong(string chuoi)
+{
+    for (char &kyTu : chuoi)
+    {
+        kyTu = static_cast<char>(tolower(static_cast<unsigned char>(kyTu)));
+    }
+    return chuoi;
+}
+
+int nhapSoNguyen(const string &thongBao, int giaTriToiThieu)
+{
+    while (true)
+    {
+        cout << thongBao;
+        int giaTri;
+        if ((cin >> giaTri) && giaTri >= giaTriToiThieu)
+        {
+            cin.ignore(1000, '\n');
+            return giaTri;
+        }
+
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "Gia tri khong hop le. Vui long nhap lai." << endl;
+    }
+}
+
+void inTieuDeDanhSachSanPham()
+{
+    cout << left << setw(10) << "Ma SP"
+         << left << setw(20) << "Ten SP"
+         << left << setw(15) << "Loai SP"
+         << left << setw(10) << "Don Gia"
+         << left << setw(10) << "So Luong"
+         << left << setw(20) << "Nha San Xuat"
+         << endl;
+    cout << string(85, '-') << endl;
+}
+
+void inMotSanPham(const SanPham &sp)
+{
+    cout << left << setw(10) << sp.maSP
+         << left << setw(20) << sp.tenSP
+         << left << setw(15) << sp.loaiSP
+         << left << setw(10) << sp.donGia
+         << left << setw(10) << sp.soLuong
+         << left << setw(20) << sp.nhasanXuat
+         << endl;
+}
+
+void inTieuDeSanPhamKemLuongBan()
+{
+    cout << left << setw(10) << "Ma SP"
+         << left << setw(20) << "Ten SP"
+         << left << setw(15) << "Loai SP"
+         << left << setw(10) << "Don Gia"
+         << left << setw(10) << "Ton Kho"
+         << left << setw(15) << "Luong Ban"
+         << left << setw(20) << "Nha San Xuat"
+         << endl;
+    cout << string(100, '-') << endl;
+}
+
+void inMotSanPhamKemLuongBan(const SanPham &sp, int luongBan)
+{
+    cout << left << setw(10) << sp.maSP
+         << left << setw(20) << sp.tenSP
+         << left << setw(15) << sp.loaiSP
+         << left << setw(10) << sp.donGia
+         << left << setw(10) << sp.soLuong
+         << left << setw(15) << luongBan
+         << left << setw(20) << sp.nhasanXuat
+         << endl;
+}
+
+int tinhTongSoLuongDaBan(const ListHD &list, const string &maSP)
+{
+    int tongSoLuong = 0;
+    NodeHD *temp = list.head;
+    while (temp != nullptr)
+    {
+        if (temp->data.maSP == maSP)
+        {
+            tongSoLuong += temp->data.soLuongMua;
+        }
+        temp = temp->next;
+    }
+    return tongSoLuong;
+}
+
 void insertSampleSanPhamData(const string &filename)
 {
     ofstream file(filename);
@@ -25,24 +240,17 @@ void insertSampleSanPhamData(const string &filename)
         cout << "Khong the mo file de ghi du lieu mau: " << filename << endl;
         return;
     }
+
     SanPham ds[] = {
         {"SP01", "Gao ST25", "Thuc pham", 32000, 80, "Vinaseed"},
         {"SP02", "Sua tuoi", "Do uong", 12000, 150, "Vinamilk"},
         {"SP03", "Nuoc rua chen", "Gia dung", 28000, 45, "Sunlight"},
         {"SP04", "Banh quy", "Thuc pham", 45000, 60, "Kinh Do"},
         {"SP05", "Dau an", "Thuc pham", 52000, 35, "Tuong An"}};
+
     int n = sizeof(ds) / sizeof(ds[0]);
     for (int i = 0; i < n; ++i)
     {
-        if (i == n)
-        {
-            file << ds[i].maSP << '\t'
-                 << ds[i].tenSP << '\t'
-                 << ds[i].loaiSP << '\t'
-                 << ds[i].donGia << '\t'
-                 << ds[i].soLuong;
-            break;
-        }
         file << ds[i].maSP << '\t'
              << ds[i].tenSP << '\t'
              << ds[i].loaiSP << '\t'
@@ -62,6 +270,7 @@ void loadSanPhamTuFile(ListSP &list, const string &filename)
         cout << "Khong the mo file: " << filename << endl;
         return;
     }
+
     SanPham sp;
     string donGiaStr, soLuongStr;
     while (getline(file, sp.maSP, '\t'))
@@ -72,24 +281,13 @@ void loadSanPhamTuFile(ListSP &list, const string &filename)
         getline(file, soLuongStr, '\t');
         getline(file, sp.nhasanXuat);
         if (sp.maSP.empty())
+        {
             continue;
-        sp.donGia = stoi(donGiaStr);
-        sp.soLuong = stoi(soLuongStr);
+        }
 
-        NodeSP *newNode = new NodeSP{sp, nullptr};
-        if (list.head == nullptr)
-        {
-            list.head = newNode;
-        }
-        else
-        {
-            NodeSP *temp = list.head;
-            while (temp->next != nullptr)
-            {
-                temp = temp->next;
-            }
-            temp->next = newNode;
-        }
+        sp.donGia = stod(donGiaStr);
+        sp.soLuong = stoi(soLuongStr);
+        themNodeSanPham(list, sp);
     }
     file.close();
 }
@@ -102,6 +300,7 @@ void luuDanhSachSPVaoFile(const ListSP &list, const string &filename)
         cout << "Khong the mo file de luu: " << filename << endl;
         return;
     }
+
     NodeSP *temp = list.head;
     while (temp != nullptr)
     {
@@ -116,13 +315,114 @@ void luuDanhSachSPVaoFile(const ListSP &list, const string &filename)
     file.close();
 }
 
+void loadKhachHangTuFile(ListKH &list, const string &filename)
+{
+    ifstream file(filename);
+    if (!file.is_open())
+    {
+        cout << "Khong the mo file: " << filename << endl;
+        return;
+    }
+
+    KhachHang kh;
+    while (getline(file, kh.maKH, '\t'))
+    {
+        getline(file, kh.tenKH, '\t');
+        getline(file, kh.diaChi, '\t');
+        getline(file, kh.soDienThoai);
+        if (kh.maKH.empty())
+        {
+            continue;
+        }
+        themNodeKhachHang(list, kh);
+    }
+    file.close();
+}
+
+void luuDanhSachKHVaoFile(const ListKH &list, const string &filename)
+{
+    ofstream file(filename);
+    if (!file.is_open())
+    {
+        cout << "Khong the mo file de luu: " << filename << endl;
+        return;
+    }
+
+    NodeKH *temp = list.head;
+    while (temp != nullptr)
+    {
+        file << temp->data.maKH << '\t'
+             << temp->data.tenKH << '\t'
+             << temp->data.diaChi << '\t'
+             << temp->data.soDienThoai << '\n';
+        temp = temp->next;
+    }
+    file.close();
+}
+
+void loadHoaDonTuFile(ListHD &list, const string &filename)
+{
+    ifstream file(filename);
+    if (!file.is_open())
+    {
+        cout << "Khong the mo file: " << filename << endl;
+        return;
+    }
+
+    HoaDon hd;
+    string soLuongMuaStr, donGiaStr, thanhTienStr;
+    while (getline(file, hd.maHD, '\t'))
+    {
+        getline(file, hd.maKH, '\t');
+        getline(file, hd.maSP, '\t');
+        getline(file, soLuongMuaStr, '\t');
+        getline(file, donGiaStr, '\t');
+        getline(file, hd.ngayBan, '\t');
+        getline(file, thanhTienStr);
+        if (hd.maHD.empty())
+        {
+            continue;
+        }
+
+        hd.soLuongMua = stoi(soLuongMuaStr);
+        hd.donGia = stod(donGiaStr);
+        hd.thanhTien = stod(thanhTienStr);
+        themNodeHoaDon(list, hd);
+    }
+    file.close();
+}
+
+void luuDanhSachHDVaoFile(const ListHD &list, const string &filename)
+{
+    ofstream file(filename);
+    if (!file.is_open())
+    {
+        cout << "Khong the mo file de luu: " << filename << endl;
+        return;
+    }
+
+    NodeHD *temp = list.head;
+    while (temp != nullptr)
+    {
+        file << temp->data.maHD << '\t'
+             << temp->data.maKH << '\t'
+             << temp->data.maSP << '\t'
+             << temp->data.soLuongMua << '\t'
+             << temp->data.donGia << '\t'
+             << temp->data.ngayBan << '\t'
+             << temp->data.thanhTien << '\n';
+        temp = temp->next;
+    }
+    file.close();
+}
+
 void nhapDanhSachSanPham(ListSP &list)
 {
-    // code nhập danh sách sản phẩm
     cout << "Nhap so luong san pham: ";
     int n;
     cin >> n;
-    cin.ignore(); // xóa phần còn lại của dòng
+    cin.ignore(1000, '\n');
+
     for (int i = 0; i < n; i++)
     {
         SanPham sp;
@@ -137,84 +437,56 @@ void nhapDanhSachSanPham(ListSP &list)
         cin >> sp.donGia;
         cout << "Nhap so luong: ";
         cin >> sp.soLuong;
-        cin.ignore(); // xóa phần còn lại của dòng
+        cin.ignore(1000, '\n');
         cout << "Nhap nha san xuat: ";
         getline(cin, sp.nhasanXuat);
 
-        // tạo node mới và thêm vào danh sách
-        NodeSP *newNode = new NodeSP{sp, nullptr};
-        // nếu là node đầu tiên thì gán head, ngược lại thêm vào cuối danh sách
-        if (list.head == nullptr)
-        {
-            list.head = newNode;
-        }
-        else
-        {
-            NodeSP *temp = list.head;
-            while (temp->next != nullptr)
-            {
-                temp = temp->next;
-            }
-            temp->next = newNode;
-        }
+        themNodeSanPham(list, sp);
     }
-    // lưu lại danh sách sản phẩm vào file sau khi nhập xong
-    NodeSP *temp = list.head;
-    luuDanhSachSPVaoFile(list, "./data/SanPham.txt");
-    return;
+
+    luuDanhSachSPVaoFile(list, SAN_PHAM_FILE);
 }
 
 void inDanhSachSanPham(const ListSP &list)
 {
-    // code in danh sách sản phẩm
-    cout << left << setw(10) << "Ma SP"
-         << left << setw(20) << "Ten SP"
-         << left << setw(15) << "Loai SP"
-         << left << setw(10) << "Don Gia"
-         << left << setw(10) << "So Luong"
-         << left << setw(20) << "Nha San Xuat"
-         << endl;
-    cout << string(85, '-') << endl; // in đường kẻ ngang
+    if (list.head == nullptr)
+    {
+        cout << "Danh sach san pham rong." << endl;
+        return;
+    }
+
+    inTieuDeDanhSachSanPham();
     NodeSP *temp = list.head;
     while (temp != nullptr)
     {
-        cout << left << setw(10) << temp->data.maSP
-             << left << setw(20) << temp->data.tenSP
-             << left << setw(15) << temp->data.loaiSP
-             << left << setw(10) << temp->data.donGia
-             << left << setw(10) << temp->data.soLuong
-             << left << setw(20) << temp->data.nhasanXuat
-             << endl;
+        inMotSanPham(temp->data);
         temp = temp->next;
     }
 }
 
 void suaSanPhamTheoMa(ListSP &list, const string &maSP)
 {
-    NodeSP *temp = list.head;
-    while (temp != nullptr)
+    NodeSP *temp = timSanPhamTheoMa(list, maSP);
+    if (temp == nullptr)
     {
-        if (temp->data.maSP == maSP)
-        {
-            cout << "Nhap thong tin san pham moi:" << endl;
-            cout << "Nhap ten san pham: ";
-            getline(cin, temp->data.tenSP);
-            cout << "Nhap loai san pham: ";
-            getline(cin, temp->data.loaiSP);
-            cout << "Nhap don gia: ";
-            cin >> temp->data.donGia;
-            cout << "Nhap so luong: ";
-            cin >> temp->data.soLuong;
-            cin.ignore(); // xóa phần còn lại của dòng
-            cout << "Nhap nha san xuat: ";
-            getline(cin, temp->data.nhasanXuat);
-            break;
-        }
-        temp = temp->next;
+        cout << "Khong tim thay san pham co ma " << maSP << endl;
+        return;
     }
-    temp = list.head;
-    // lưu lại danh sách sản phẩm vào file sau khi sửa xong
-    luuDanhSachSPVaoFile(list, "./data/SanPham.txt");
+
+    cout << "Nhap thong tin san pham moi:" << endl;
+    cout << "Nhap ten san pham: ";
+    getline(cin, temp->data.tenSP);
+    cout << "Nhap loai san pham: ";
+    getline(cin, temp->data.loaiSP);
+    cout << "Nhap don gia: ";
+    cin >> temp->data.donGia;
+    cout << "Nhap so luong: ";
+    cin >> temp->data.soLuong;
+    cin.ignore(1000, '\n');
+    cout << "Nhap nha san xuat: ";
+    getline(cin, temp->data.nhasanXuat);
+
+    luuDanhSachSPVaoFile(list, SAN_PHAM_FILE);
 }
 
 void xoaSanPhamTheoMa(ListSP &list, const string &maSP)
@@ -224,8 +496,6 @@ void xoaSanPhamTheoMa(ListSP &list, const string &maSP)
     {
         if (temp->data.maSP == maSP)
         {
-            // code xóa node temp khỏi danh sách
-            // thuật toán: nếu temp là node đầu tiên thì gán head = temp->next, ngược lại tìm node trước temp rồi gán prev->next = temp->next
             if (temp == list.head)
             {
                 list.head = temp->next;
@@ -239,13 +509,15 @@ void xoaSanPhamTheoMa(ListSP &list, const string &maSP)
                 }
                 prev->next = temp->next;
             }
-            delete temp; // giải phóng bộ nhớ của node bị xóa
-            break;
+            delete temp;
+            luuDanhSachSPVaoFile(list, SAN_PHAM_FILE);
+            cout << "Da xoa san pham co ma " << maSP << endl;
+            return;
         }
         temp = temp->next;
     }
-    // lưu lại danh sách sản phẩm vào file sau khi xóa xong
-    luuDanhSachSPVaoFile(list, "./data/SanPham.txt");
+
+    cout << "Khong tim thay san pham co ma " << maSP << endl;
 }
 
 void timKiemSanPhamGiaCaoNhat(const ListSP &list)
@@ -256,6 +528,7 @@ void timKiemSanPhamGiaCaoNhat(const ListSP &list)
         cout << "Danh sach san pham rong." << endl;
         return;
     }
+
     SanPham spMax = temp->data;
     while (temp != nullptr)
     {
@@ -265,33 +538,20 @@ void timKiemSanPhamGiaCaoNhat(const ListSP &list)
         }
         temp = temp->next;
     }
+
     cout << "San pham co don gia cao nhat:" << endl;
-    cout << left << setw(10) << "Ma SP"
-         << left << setw(20) << "Ten SP"
-         << left << setw(15) << "Loai SP"
-         << left << setw(10) << "Don Gia"
-         << left << setw(10) << "So Luong"
-         << left << setw(20) << "Nha San Xuat"
-         << endl;
-    cout << string(85, '-') << endl; // in đường kẻ ngang
-    cout << left << setw(10) << spMax.maSP
-         << left << setw(20) << spMax.tenSP
-         << left << setw(15) << spMax.loaiSP
-         << left << setw(10) << spMax.donGia
-         << left << setw(10) << spMax.soLuong
-         << left << setw(20) << spMax.nhasanXuat
-         << endl;
+    inTieuDeDanhSachSanPham();
+    inMotSanPham(spMax);
 }
 
 void sapXepSanPhamTheoDonGiaTangDan(ListSP &list)
 {
-    // code sắp xếp sản phẩm theo đơn giá tăng dần
     if (list.head == nullptr)
     {
         cout << "Danh sach san pham rong." << endl;
         return;
     }
-    // thuật toán sắp xếp: sử dụng thuật toán bubble sort để sắp xếp lại các node trong danh sách liên kết đơn
+
     bool swapped;
     do
     {
@@ -301,18 +561,253 @@ void sapXepSanPhamTheoDonGiaTangDan(ListSP &list)
         {
             if (temp->data.donGia > temp->next->data.donGia)
             {
-                swap(temp->data, temp->next->data); // hoán đổi dữ liệu của 2 node
+                swap(temp->data, temp->next->data);
                 swapped = true;
             }
             temp = temp->next;
         }
     } while (swapped);
+
+    luuDanhSachSPVaoFile(list, SAN_PHAM_FILE);
     cout << "Da sap xep san pham theo don gia tang dan." << endl;
+}
+
+void themDonHang()
+{
+    if (listSP.head == nullptr)
+    {
+        cout << "Danh sach san pham rong. Khong the tao don hang." << endl;
+        return;
+    }
+
+    HoaDon hd;
+    cout << "Nhap ma hoa don: ";
+    getline(cin, hd.maHD);
+    if (hd.maHD.empty())
+    {
+        cout << "Ma hoa don khong duoc de trong." << endl;
+        return;
+    }
+    if (tonTaiMaHoaDon(listHD, hd.maHD))
+    {
+        cout << "Ma hoa don da ton tai." << endl;
+        return;
+    }
+
+    cout << "Nhap ma khach hang: ";
+    getline(cin, hd.maKH);
+    if (hd.maKH.empty())
+    {
+        cout << "Ma khach hang khong duoc de trong." << endl;
+        return;
+    }
+
+    cout << "Nhap ma san pham: ";
+    getline(cin, hd.maSP);
+    NodeSP *sanPham = timSanPhamTheoMa(listSP, hd.maSP);
+    if (sanPham == nullptr)
+    {
+        cout << "Khong tim thay san pham co ma " << hd.maSP << endl;
+        return;
+    }
+
+    KhachHang khMoi;
+    bool canThemKhachHang = false;
+    if (timKhachHangTheoMa(listKH, hd.maKH) == nullptr)
+    {
+        canThemKhachHang = true;
+        khMoi.maKH = hd.maKH;
+        cout << "Khach hang chua ton tai. Nhap thong tin khach hang moi." << endl;
+        cout << "Nhap ten khach hang: ";
+        getline(cin, khMoi.tenKH);
+        cout << "Nhap dia chi: ";
+        getline(cin, khMoi.diaChi);
+        cout << "Nhap so dien thoai: ";
+        getline(cin, khMoi.soDienThoai);
+    }
+
+    cout << "San pham: " << sanPham->data.tenSP
+         << " | Ton kho: " << sanPham->data.soLuong
+         << " | Don gia: " << sanPham->data.donGia << endl;
+
+    hd.soLuongMua = nhapSoNguyen("Nhap so luong mua: ", 1);
+    if (hd.soLuongMua > sanPham->data.soLuong)
+    {
+        cout << "So luong mua vuot qua ton kho." << endl;
+        return;
+    }
+
+    cout << "Nhap ngay ban: ";
+    getline(cin, hd.ngayBan);
+    if (hd.ngayBan.empty())
+    {
+        hd.ngayBan = "Khong ro";
+    }
+
+    hd.donGia = sanPham->data.donGia;
+    hd.thanhTien = hd.donGia * hd.soLuongMua;
+
+    if (canThemKhachHang)
+    {
+        themNodeKhachHang(listKH, khMoi);
+        luuDanhSachKHVaoFile(listKH, KHACH_HANG_FILE);
+    }
+
+    themNodeHoaDon(listHD, hd);
+    sanPham->data.soLuong -= hd.soLuongMua;
+    luuDanhSachHDVaoFile(listHD, HOA_DON_FILE);
+    luuDanhSachSPVaoFile(listSP, SAN_PHAM_FILE);
+
+    cout << "Da them don hang thanh cong." << endl;
+    cout << "Thanh tien: " << hd.thanhTien << endl;
+}
+
+void timSanPhamCoLuongBanLonNhatNhoNhat(const ListSP &danhSachSP, const ListHD &danhSachHD)
+{
+    if (danhSachHD.head == nullptr)
+    {
+        cout << "Chua co don hang nao." << endl;
+        return;
+    }
+
+    NodeSP *tempSP = danhSachSP.head;
+    SanPham spMax;
+    SanPham spMin;
+    int luongBanMax = 0;
+    int luongBanMin = 0;
+    bool daCoDuLieuBan = false;
+
+    while (tempSP != nullptr)
+    {
+        int tongBan = tinhTongSoLuongDaBan(danhSachHD, tempSP->data.maSP);
+        if (tongBan > 0)
+        {
+            if (!daCoDuLieuBan || tongBan > luongBanMax)
+            {
+                spMax = tempSP->data;
+                luongBanMax = tongBan;
+            }
+            if (!daCoDuLieuBan || tongBan < luongBanMin)
+            {
+                spMin = tempSP->data;
+                luongBanMin = tongBan;
+            }
+            daCoDuLieuBan = true;
+        }
+        tempSP = tempSP->next;
+    }
+
+    if (!daCoDuLieuBan)
+    {
+        cout << "Chua co san pham nao duoc ban." << endl;
+        return;
+    }
+
+    cout << "San pham co luong ban lon nhat:" << endl;
+    inTieuDeSanPhamKemLuongBan();
+    inMotSanPhamKemLuongBan(spMax, luongBanMax);
+
+    cout << "San pham co luong ban nho nhat:" << endl;
+    inTieuDeSanPhamKemLuongBan();
+    inMotSanPhamKemLuongBan(spMin, luongBanMin);
+}
+
+void tinhTongTonKho(const ListSP &list)
+{
+    int tongTonKho = 0;
+    NodeSP *temp = list.head;
+    while (temp != nullptr)
+    {
+        tongTonKho += temp->data.soLuong;
+        temp = temp->next;
+    }
+
+    cout << "Tong so luong ton kho: " << tongTonKho << endl;
+}
+
+void timKiemTheoLoai(const ListSP &list)
+{
+    if (list.head == nullptr)
+    {
+        cout << "Danh sach san pham rong." << endl;
+        return;
+    }
+
+    string loaiCanTim;
+    cout << "Nhap loai san pham can tim: ";
+    getline(cin, loaiCanTim);
+    if (loaiCanTim.empty())
+    {
+        cout << "Loai san pham khong duoc de trong." << endl;
+        return;
+    }
+
+    string loaiChuanHoa = chuyenVeChuThuong(loaiCanTim);
+    int dem = 0;
+    NodeSP *temp = list.head;
+
+    while (temp != nullptr)
+    {
+        if (chuyenVeChuThuong(temp->data.loaiSP) == loaiChuanHoa)
+        {
+            if (dem == 0)
+            {
+                cout << "Danh sach san pham thuoc loai " << loaiCanTim << ":" << endl;
+                inTieuDeDanhSachSanPham();
+            }
+            inMotSanPham(temp->data);
+            dem++;
+        }
+        temp = temp->next;
+    }
+
+    if (dem == 0)
+    {
+        cout << "Khong tim thay san pham thuoc loai " << loaiCanTim << endl;
+        return;
+    }
+
+    cout << "So san pham thuoc loai " << loaiCanTim << ": " << dem << endl;
+}
+
+void thongKeTheoDieuKien(const ListSP &list)
+{
+    if (list.head == nullptr)
+    {
+        cout << "Danh sach san pham rong." << endl;
+        return;
+    }
+
+    int nguong = nhapSoNguyen("Nhap nguong so luong (thong ke san pham co so luong nho hon nguong): ", 0);
+    int dem = 0;
+    NodeSP *temp = list.head;
+
+    while (temp != nullptr)
+    {
+        if (temp->data.soLuong < nguong)
+        {
+            if (dem == 0)
+            {
+                cout << "Cac san pham co so luong duoi " << nguong << ":" << endl;
+                inTieuDeDanhSachSanPham();
+            }
+            inMotSanPham(temp->data);
+            dem++;
+        }
+        temp = temp->next;
+    }
+
+    if (dem == 0)
+    {
+        cout << "Khong co san pham nao co so luong duoi " << nguong << endl;
+        return;
+    }
+
+    cout << "Tong so san pham thoa dieu kien: " << dem << endl;
 }
 
 void menu()
 {
-    // dung tieng vet ko dau tranh bug
     cout << "1. Nhap danh sach san pham" << endl;
     cout << "2. In danh sach san pham" << endl;
     cout << "3. Sua san pham theo ma" << endl;
@@ -321,36 +816,33 @@ void menu()
     cout << "6. Sap xep san pham theo don gia tang dan" << endl;
     cout << "7. Them don hang" << endl;
     cout << "8. Tim san pham co luong ban lon nhat/nho nhat" << endl;
-    cout << "9. TTinh tong ton kho" << endl;
-    cout << "10. TTim kiem theo loai" << endl;
+    cout << "9. Tinh tong ton kho" << endl;
+    cout << "10. Tim kiem theo loai" << endl;
     cout << "11. Thong ke theo dieu kien" << endl;
     cout << "12. Thoat" << endl;
     cout << "13. Ghi du lieu mau vao file" << endl;
     cout << "Chon chuc nang: ";
 }
 
-void themDonHang()
+int main()
 {
-    
-}
+    loadSanPhamTuFile(listSP, SAN_PHAM_FILE);
+    loadKhachHangTuFile(listKH, KHACH_HANG_FILE);
+    loadHoaDonTuFile(listHD, HOA_DON_FILE);
 
-int main(int argc, char *argv[])
-{
-    // load dữ liệu sản phẩm từ file khi chương trình bắt đầu
-    loadSanPhamTuFile(listSP, "./data/SanPham.txt");
     while (true)
     {
         menu();
         int choice;
-        // fix lỗi nhập chữ thay vì số, tránh crash chương trình
         if (!(cin >> choice))
         {
-            cin.clear();            // xóa trạng thái lỗi
-            cin.ignore(1000, '\n'); // bỏ qua input rác trong buffer
+            cin.clear();
+            cin.ignore(1000, '\n');
             cout << "Lua chon khong hop le. Vui long nhap so." << endl;
             continue;
         }
-        cin.ignore(1000, '\n'); // xóa phần còn lại của dòng
+        cin.ignore(1000, '\n');
+
         switch (choice)
         {
         case 1:
@@ -365,16 +857,16 @@ int main(int argc, char *argv[])
             cout << "Nhap ma san pham can sua: ";
             getline(cin, maSP);
             suaSanPhamTheoMa(listSP, maSP);
+            break;
         }
-        break;
         case 4:
         {
             string maSP;
             cout << "Nhap ma san pham can xoa: ";
             getline(cin, maSP);
             xoaSanPhamTheoMa(listSP, maSP);
+            break;
         }
-        break;
         case 5:
             timKiemSanPhamGiaCaoNhat(listSP);
             break;
@@ -382,25 +874,30 @@ int main(int argc, char *argv[])
             sapXepSanPhamTheoDonGiaTangDan(listSP);
             break;
         case 7:
-            // code thêm đơn hàng
+            themDonHang();
             break;
         case 8:
-            // code tìm sản phẩm có lượng bán lớn nhất/nhỏ nhất
+            timSanPhamCoLuongBanLonNhatNhoNhat(listSP, listHD);
             break;
         case 9:
-            // code tính tổng tồn kho
+            tinhTongTonKho(listSP);
             break;
         case 10:
-            // code tìm kiếm theo loại
+            timKiemTheoLoai(listSP);
             break;
         case 11:
-            // code thống kê theo điều kiện
+            thongKeTheoDieuKien(listSP);
             break;
         case 12:
             cout << "Thoat chuong trinh." << endl;
-            return 0; // thoat chuong trinh
+            xoaDanhSachSanPham(listSP);
+            xoaDanhSachKhachHang(listKH);
+            xoaDanhSachHoaDon(listHD);
+            return 0;
         case 13:
-            insertSampleSanPhamData("./data/SanPham.txt");
+            insertSampleSanPhamData(SAN_PHAM_FILE);
+            xoaDanhSachSanPham(listSP);
+            loadSanPhamTuFile(listSP, SAN_PHAM_FILE);
             break;
         default:
             cout << "Lua chon khong hop le. Vui long chon lai." << endl;

@@ -1,5 +1,5 @@
-SP01	Gao ST25	Thuc pham	32000	80	Vinaseed
 SP02	Sua tuoi	Do uong	12000	150	Vinamilk
 SP03	Nuoc rua chen	Gia dung	28000	45	Sunlight
+SP01	Gao ST25	Thuc pham	32000	77	Vinaseed
 SP04	Banh quy	Thuc pham	45000	60	Kinh Do
 SP05	Dau an	Thuc pham	52000	35	Tuong An
